@@ -1,13 +1,13 @@
 # encoding: utf-8
 
-require 'test_helper'
+require_relative 'test_helper'
 
 class TvdbPartyTest < Test::Unit::TestCase
   context "tvdb" do
     setup do 
       @tvdb = TvdbParty::Search.new('A97A9243F8030477')
     end
-  
+
     context "search for terrible query" do
       setup do
         @results = @tvdb.search("sdfsafsdfds")
@@ -34,16 +34,16 @@ class TvdbPartyTest < Test::Unit::TestCase
       setup do
         @results = @tvdb.search("The Office US")
       end
-      
+
       should "have 1 results" do
         assert_equal 1, @results.size
       end
-      
+
       context "get the series" do
         setup do 
           @series = @tvdb.get_series_by_id(@results.first['seriesid'])
         end
-        
+
         should "have a series" do
           assert_equal TvdbParty::Series, @series.class
         end
@@ -59,14 +59,20 @@ class TvdbPartyTest < Test::Unit::TestCase
         should "have a first episode" do
           assert_equal "110413", @series.get_episode(1, 1).id
         end
-
-        should "have imdb id if available" do
-          assert_equal 'tt0386676', @series.imdb_id
-        end
       end
-    
+
     end
-  
+
+    context "search with invalid xml in result" do
+      setup do
+        @results = @tvdb.search("or")
+      end
+
+      should "have results and not throw an error" do
+        assert(@results.size > 0)
+      end
+    end
+
   end
   context "non english series" do
     setup do

@@ -207,7 +207,7 @@ module HTTParty #:nodoc:
         end
         def set(key, value)
           Cache.logger.info("Cache: set (#{key})")
-          File.open( @path.join(key), 'w' ) { |file| Marshal.dump(value, file) }
+          File.open( @path.join(key), 'w' ) { |file| Marshal.dump(value.parsed_response, file) }
           true
         end
         def get(key)
@@ -225,6 +225,15 @@ module HTTParty #:nodoc:
         private
         def created(key)
           File.mtime( @path.join(key) )
+        end
+        # borrowed from Rails 3.2 ActiveSupport
+        def hash_deep_dup(h)
+          duplicate = h.dup
+          duplicate.each_pair do |k,v|
+            tv = duplicate[k]
+            duplicate[k] = tv.is_a?(Hash) && v.is_a?(Hash) ? hash_deep_dup(tv) : v
+          end
+          duplicate
         end
       end
     end
