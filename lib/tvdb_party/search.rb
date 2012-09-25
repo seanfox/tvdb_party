@@ -39,16 +39,20 @@ module TvdbParty
       response["Items"]["Time"]
     end
 
-    def get_series_updates(timestamp)
-      get_updates(timestamp, 'series')
+    def get_daily_updates()
+      get_updates('day')
     end
 
-    def get_episodes_updates(timestamp)
-      get_updates(timestamp, 'episode')
+    def get_weekly_updates()
+      get_updates('week')
     end
 
-    def get_all_updates(timestamp)
-      get_updates(timestamp, 'all')
+    def get_monthly_updates()
+      get_updates('month')
+    end
+
+    def get_all_updates()
+      get_updates('all')
     end
 
     def search(series_name)
@@ -156,9 +160,13 @@ module TvdbParty
 
     private
 
-    def get_updates(timestamp, update_type)
-      response = self.class.get("/Updates.php", {:query => { :time => timestamp, :type => update_type}})
-      return response["Items"] ? response["Items"] : []
+    def get_updates(update_type)
+      response = self.class.get("/#{@api_key}/updates/updates_#{update_type}.xml")
+      updates = Updates.new()
+      updates.series = response["Data"]["Series"].map { |result| Series.new(self, result) }
+      updates.episodes = response["Data"]["Episode"].map { |result| Episode.new(self, result) }
+      updates.banners = response["Data"]["Banner"].map { |result| Banner.new(result) }
+      updates
     end
 
   end

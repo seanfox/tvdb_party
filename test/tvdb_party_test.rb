@@ -59,8 +59,11 @@ class TvdbPartyTest < Test::Unit::TestCase
         should "have a first episode" do
           assert_equal "110413", @series.get_episode(1, 1).id
         end
-      end
 
+        should "have imdb id if available" do
+          assert_equal 'tt0386676', @series.imdb_id
+        end
+      end
     end
 
     context "search with invalid xml in result" do
