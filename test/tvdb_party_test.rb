@@ -12,22 +12,22 @@ class TvdbPartyTest < Test::Unit::TestCase
       setup do
         @results = @tvdb.search("sdfsafsdfds")
       end
-      
+
       should "have 0 results" do
         assert_equal 0, @results.size
       end
-    
+
     end
 
     context "search for episode that doesn't exist" do
       setup do
         @show = @tvdb.get_series_by_id(75700)
       end
-      
+
       should "have handle 404 on episode query" do
         assert_equal nil, @show.get_episode(1, 17)
       end
-    
+
     end
 
     context "search for real show" do
