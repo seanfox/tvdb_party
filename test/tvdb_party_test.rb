@@ -41,7 +41,7 @@ class TvdbPartyTest < Test::Unit::TestCase
 
       context "get the series" do
         setup do 
-          @series = @tvdb.get_series_by_id(@results.first['seriesid'])
+          @series = @tvdb.get_series_by_id(@results.first.id)
         end
 
         should "have a series" do

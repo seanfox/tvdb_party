@@ -1,7 +1,11 @@
 module TvdbParty
   class InvalidXmlParser < HTTParty::Parser
     def xml
-      MultiXml.parse(cleaned_body)
+      begin
+        MultiXml.parse(body)
+      rescue
+        MultiXml.parse(cleaned_body)
+      end
     end
 
     def cleaned_body
@@ -35,8 +39,8 @@ module TvdbParty
 
     def get_server_time
       response = self.class.get("/Updates.php", {:query => {:type => 'none'}})
-      return nil unless response["Items"]
-      response["Items"]["Time"]
+      return nil unless response['Items']
+      response['Items']['Time']
     end
 
     def get_daily_updates()
@@ -57,13 +61,13 @@ module TvdbParty
 
     def search(series_name)
       response = self.class.get("/GetSeries.php", {:query => {:seriesname => series_name, :language => @language}})
-      return [] unless response["Data"]
+      return [] unless response['Data']
 
-      case response["Data"]["Series"]
+      case response['Data']['Series']
         when Array
-          response["Data"]["Series"].map {|result| Series.new(self, result)}
+          response['Data']['Series'].map {|result| Series.new(self, result)}
         when Hash
-          [Series.new(self, response["Data"]["Series"])]
+          [Series.new(self, response['Data']['Series'])]
         else
           []
       end
@@ -71,13 +75,13 @@ module TvdbParty
     
     def search_by_imdb_id(imdb_id)
       response = self.class.get("/GetSeriesByRemoteID.php", {:query => {:imdbid => imdb_id, :language => @language}})
-      return [] unless response["Data"]
+      return [] unless response['Data']
 
-      case response["Data"]["Series"]
+      case response['Data']['Series']
       when Array
-        response["Data"]["Series"]
+        response['Data']['Series']
       when Hash
-        [response["Data"]["Series"]]
+        [response['Data']['Series']]
       else
         []
       end
@@ -86,8 +90,8 @@ module TvdbParty
     def get_series_by_id(series_id, language = self.language)
       response = self.class.get("/#{@api_key}/series/#{series_id}/#{language}.xml")
 
-      if response["Data"] && response["Data"]["Series"]
-        Series.new(self, response["Data"]["Series"])
+      if response['Data'] && response['Data']['Series']
+        Series.new(self, response['Data']['Series'])
       else
         nil
       end
@@ -95,8 +99,8 @@ module TvdbParty
 
     def get_episode_by_id(episode_id, language = self.language)
       response = self.class.get("/#{@api_key}/episodes/#{episode_id}/#{language}.xml")
-      if response["Data"] && response["Data"]["Episode"]
-        Episode.new(self, response["Data"]["Episode"])
+      if response['Data'] && response['Data']['Episode']
+        Episode.new(self, response['Data']['Episode'])
       else
         nil
       end
@@ -104,8 +108,8 @@ module TvdbParty
 
     def get_episode(series, season_number, episode_number, language = self.language)
       response = self.class.get("/#{@api_key}/series/#{series.id}/default/#{season_number}/#{episode_number}/#{language}.xml")
-      if response["Data"] && response["Data"]["Episode"]
-        Episode.new(self, response["Data"]["Episode"])
+      if response['Data'] && response['Data']['Episode']
+        Episode.new(self, response['Data']['Episode'])
       else
         nil
       end
@@ -113,14 +117,14 @@ module TvdbParty
 
     def get_all_episodes_by_series_id(series_id, language = self.language)
       response = self.class.get("/#{@api_key}/series/#{series_id}/all/#{language}.xml")
-      return [] unless response["Data"] && response["Data"]["Episode"]
-      case response["Data"]["Episode"]
-      when Array
-        response["Data"]["Episode"].map{|result| Episode.new(self, result)}
-      when Hash
-        [Episode.new(response["Data"]["Episode"])]
-      else
-        []
+      return [] unless response['Data'] && response['Data']['Episode']
+      case response['Data']['Episode']
+        when Array
+          response['Data']['Episode'].map{|result| Episode.new(self, result)}
+        when Hash
+          [Episode.new(response['Data']['Episode'])]
+        else
+          []
       end
     end
 
@@ -130,10 +134,12 @@ module TvdbParty
 
     def get_actors_by_id(series_id)
       response = self.class.get("/#{@api_key}/series/#{series_id}/actors.xml")
-      if response["Actors"] && response["Actors"]["Actor"]
-        response["Actors"]["Actor"].collect {|a| Actor.new(a)}
-      else
-        nil
+      return [] unless response['Actors'] && response['Actors']['Actor']
+      case response['Actors']['Actor']
+        when Array
+          response['Actors']['Actor'].map{|result| Actor.new(result)}
+        else
+          []
       end
     end
 
@@ -143,14 +149,14 @@ module TvdbParty
 
     def get_banners_by_id(series_id)
       response = self.class.get("/#{@api_key}/series/#{series_id}/banners.xml")
-      return [] unless response["Banners"] && response["Banners"]["Banner"]
-      case response["Banners"]["Banner"]
-      when Array
-        response["Banners"]["Banner"].map{|result| Banner.new(result)}
-      when Hash
-        [Banner.new(response["Banners"]["Banner"])]
-      else
-        []
+      return [] unless response['Banners'] && response['Banners']['Banner']
+      case response['Banners']['Banner']
+        when Array
+          response['Banners']['Banner'].map{|result| Banner.new(result)}
+        when Hash
+          [Banner.new(response['Banners']['Banner'])]
+        else
+          []
       end
     end
 
@@ -163,9 +169,9 @@ module TvdbParty
     def get_updates(update_type)
       response = self.class.get("/#{@api_key}/updates/updates_#{update_type}.xml")
       updates = Updates.new()
-      updates.series = response["Data"]["Series"].map { |result| Series.new(self, result) }
-      updates.episodes = response["Data"]["Episode"].map { |result| Episode.new(self, result) }
-      updates.banners = response["Data"]["Banner"].map { |result| Banner.new(result) }
+      updates.series = response['Data']['Series'].map { |result| Series.new(self, result) }
+      updates.episodes = response['Data']['Episode'].map { |result| Episode.new(self, result) }
+      updates.banners = response['Data']['Banner'].map { |result| Banner.new(result) }
       updates
     end
 
